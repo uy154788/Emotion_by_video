@@ -28,19 +28,18 @@ def detect_faces(frames):
 def analyze_emotion(face_frames):
     emotions = []
     for face_frame in face_frames:
-        result = DeepFace.analyze(face_frame, actions=['emotion'])
-        # Check if result is a list
-        if isinstance(result, list):
-            # If it is, take the first element
-            result = result[0]
-        emotions.append(result['dominant_emotion'])
+        try:
+            result = DeepFace.analyze(face_frame, actions=['emotion'])
+            if isinstance(result, list):
+                result = result[0]
+            emotions.append(result.get('dominant_emotion', 'unknown'))
+        except Exception as e:
+            print(f"Error analyzing face: {e}")
+            emotions.append('unknown')
 
     emotion_counts = {}
     for emotion in emotions:
-        if emotion in emotion_counts:
-            emotion_counts[emotion] += 1
-        else:
-            emotion_counts[emotion] = 1
+        emotion_counts[emotion] = emotion_counts.get(emotion, 0) + 1
 
     print(emotion_counts)
     return emotions
@@ -48,30 +47,29 @@ def analyze_emotion(face_frames):
 def determine_confidence_level(emotions):
     confidence_level = 0
     for emotion in emotions:
-        if emotion in ['happy']:
+        if emotion == 'happy':
             confidence_level += 1
-        elif emotion in ['neutral']:
+        elif emotion == 'neutral':
             confidence_level += 0.8
-        elif emotion in ['surprise']:
+        elif emotion == 'surprise':
             confidence_level += 0.6
-        elif emotion in ['sad','fear']:
+        elif emotion in ['sad', 'fear']:
             confidence_level += 0.4
-        elif emotion in ['angry','disgust']:
+        elif emotion in ['angry', 'disgust']:
             confidence_level += 0.1
     return confidence_level / len(emotions) if emotions else 0
 
 @app.route('/analyze', methods=['POST'])
 def analyze_video():
-    # Get the video path from the request
     video_path = request.json.get('video_path')
     if not video_path:
         return jsonify({'error': 'Video path not provided'}), 400
 
     try:
         frames = extract_frames(video_path)
-        # print(f"Number of frames detected: {len(frames)}")
+        print(f"Number of frames detected: {len(frames)}")
         face_frames = detect_faces(frames)
-        # print(f"Number of face frames detected: {len(face_frames)}")
+        print(f"Number of face frames detected: {len(face_frames)}")
         emotions = analyze_emotion(face_frames)
         confidence_level = determine_confidence_level(emotions)
         confidence_level = round(confidence_level * 100, 2)
