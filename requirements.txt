@@ -2,5 +2,4 @@ Flask
 opencv-python
 deepface
 numpy
-tenserflow
 gunicorn
