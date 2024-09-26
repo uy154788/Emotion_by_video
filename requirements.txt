@@ -1,6 +1,6 @@
-Flask
-opencv-python
-deepface
-numpy
-gunicorn
-tensorflow
+Flask==2.0.3
+opencv-python==4.5.3.56
+deepface==0.0.75
+tensorflow==2.8.0 
+numpy==1.21.2
+keras==2.15.0
